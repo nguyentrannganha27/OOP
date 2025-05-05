@@ -4,6 +4,7 @@
 #include <vector>
 #include "Product.h"
 
-void orderItem(int option, const std::vector<Product>& dsSanPham);
+// Phải bỏ const để có thể chỉnh sửa số lượng sản phẩm
+void orderItem(int option, std::vector<Product>& dsSanPham);
 
 #endif
