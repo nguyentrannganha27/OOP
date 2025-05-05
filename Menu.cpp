@@ -1,5 +1,8 @@
 #include "Menu.h"
+#include "Product.h"    // cần để biết về Product
 #include <iostream>
+#include <vector>       // cần để dùng vector
+
 using namespace std;
 
 void printMenu(const vector<Product>& dsSanPham) {
