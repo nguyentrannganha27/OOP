@@ -1,24 +1,32 @@
 #include "Order.h"
-#include "Gia.h"
 #include "Tien.h"
 #include <iostream>
 #include <cstdlib>
 using namespace std;
 
-void orderItem(int option) {
-    if (option >= 1 && option <= 4) {
-        if (tien >= gia[option - 1]) {
-            tien -= gia[option - 1];
-            cout << "\nBạn đã mua thành công!\n";
+void orderItem(int option, vector<Product>& dsSanPham) {
+    int n = dsSanPham.size();
+    if (option >= 1 && option <= n) {
+        Product& p = dsSanPham[option - 1];
+
+        if (p.soLuong <= 0) {
+            cout << "\nXin lỗi, " << p.ten << " đã hết hàng.\n";
+            return;
+        }
+
+        if (tien >= p.gia) {
+            tien -= p.gia;
+            p.soLuong--;
+            cout << "\nBạn đã mua " << p.ten << " thành công!\n";
             cout << "Số dư còn lại: " << tien << " đô\n";
         } else {
             cout << "\nSố dư không đủ! Vui lòng nạp thêm tiền.\n";
         }
-    } else if (option == 5) {
+    } else if (option == n + 1) {
         returnMoney();
-    } else if (option == 6) {
+    } else if (option == n + 2) {
         getMoney();
-    } else if (option == 7) {
+    } else if (option == n + 3) {
         returnMoney();
         cout << "Thoát thành công!\n";
         exit(0);
@@ -26,4 +34,3 @@ void orderItem(int option) {
         cout << "\nLựa chọn không hợp lệ! Vui lòng chọn lại.\n";
     }
 }
-
