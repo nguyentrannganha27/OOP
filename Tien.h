@@ -8,4 +8,3 @@ void printCurrentMoney();
 void returnMoney();
 
 #endif
-
