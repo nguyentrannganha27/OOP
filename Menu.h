@@ -1,6 +1,9 @@
 #ifndef MENU_H
 #define MENU_H
 
-void printMenu();
+#include "Product.h"
+#include <vector>
+
+void printMenu(const std::vector<Product>& dsSanPham);
 
 #endif
