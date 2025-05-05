@@ -1,16 +1,24 @@
-#include "Gia.h"
-#include "Tien.h"
+#include "Product.h"
 #include "Menu.h"
+#include "Tien.h"
 #include "Order.h"
 #include <iostream>
+#include <vector>
 using namespace std;
 
 int main() {
+    vector<Product> dsSanPham = {
+        {"Chó", 12, 5},
+        {"Mèo", 14, 3},
+        {"Gà", 87, 2},
+        {"Dê", 45, 4}
+    };
+
     int option;
 
     while (true) {
         printCurrentMoney();
-        printMenu();
+        printMenu(dsSanPham);
         cout << "\nNhập lựa chọn của bạn: ";
         cin >> option;
 
@@ -21,7 +29,7 @@ int main() {
             continue;
         }
 
-        orderItem(option);
+        orderItem(option, dsSanPham);
     }
 
     return 0;
