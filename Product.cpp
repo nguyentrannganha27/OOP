@@ -4,17 +4,16 @@
 #include <string>
 
 struct Product {
-    std::string ten;
-    int gia;
-    int soLuong;
+    std::string name;
+    int price;
+    int quantity;
 
-    Product(std::string t, int g, int s) : ten(t), gia(g), soLuong(s) {}
+    Product(std::string n, int p, int q) : name(n), price(p), quantity(q) {}
 
-    // Hàm tính giá trị tổng của sản phẩm
+    // Function to calculate total value of this product in stock
     int getTotalPrice() const {
-        return gia * soLuong;
+        return price * quantity;
     }
 };
 
 #endif
-

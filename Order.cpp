@@ -7,49 +7,45 @@
 #include <cstdlib>
 using namespace std;
 
-// Cập nhật để cho phép nhập số lượng muốn mua
-void orderItem(int option, vector<Product>& dsSanPham) {
-    int n = dsSanPham.size();
+// Updated to allow quantity selection when purchasing
+void orderItem(int option, vector<Product>& productList) {
+    int n = productList.size();
     if (option >= 1 && option <= n) {
-        Product& p = dsSanPham[option - 1];
+        Product& p = productList[option - 1];
 
-        if (p.soLuong <= 0) {
-            cout << "\nxin loi, " << p.ten << " da het hang\n";
+        if (p.quantity <= 0) {
+            cout << "\nSorry, " << p.name << " is out of stock.\n";
             return;
         }
 
         int qty;
-        cout << "Nhap so luong muon mua: ";
+        cout << "Enter quantity to purchase: ";
         cin >> qty;
         if (cin.fail() || qty <= 0) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "So luong khong hop le, vui long thu lai.\n";
+            cout << " Invalid quantity, please try again.\n";
             return;
         }
-        if (qty > p.soLuong) {
-            cout << "Xin loi, chi con " << p.soLuong << " " << p.ten << " trong kho.\n";
+        if (qty > p.quantity) {
+            cout << " Sorry, only " << p.quantity << " " << p.name << " left in stock.\n";
             return;
         }
 
-        int cost = qty * p.gia;
-        if (tien >= cost) {
-            tien -= cost;
-            p.soLuong -= qty;
-            cout << "\nBan da mua " << qty << " " << p.ten << " thanh cong!\n";
-            cout << "So du con lai: " << tien << " do\n";
+        int cost = qty * p.price;
+        if (balance >= cost) {
+            balance -= cost;
+            p.quantity -= qty;
+            cout << "\n Purchase successful: " << qty << " x " << p.name << "\n";
+            cout << " Remaining balance: " << balance << " VND\n";
         } else {
-            cout << "\nSo du khong du. Ban can nap them " << (cost - tien) << " do.\n";
+            cout << "\n Insufficient balance. You need " << (cost - balance) << " more VND.\n";
         }
     } else if (option == n + 1) {
         returnMoney();
     } else if (option == n + 2) {
         getMoney();
-    } else if (option == n + 3) {
-        returnMoney();
-        cout << "thoat thanh cong!\n";
-        exit(0);
     } else {
-        cout << "\nlua chon khong hop le, chon lai\n";
+        cout << "\n Invalid choice. Please try again.\n";
     }
 }

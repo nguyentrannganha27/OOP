@@ -4,6 +4,6 @@
 #include "Product.h"
 #include <vector>
 
-void printMenu(const std::vector<Product>& dsSanPham);
+void printMenu(const std::vector<Product>& productList);
 
 #endif

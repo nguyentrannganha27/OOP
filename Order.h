@@ -4,7 +4,7 @@
 #include <vector>
 #include "Product.h"
 
-// Phải bỏ const để có thể chỉnh sửa số lượng sản phẩm
-void orderItem(int option, std::vector<Product>& dsSanPham);
+// Must not use 'const' so the product quantities can be modified
+void orderItem(int option, std::vector<Product>& productList);
 
-#endif
+#endif // ORDER_H

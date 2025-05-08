@@ -4,12 +4,12 @@
 #include <string>
 
 struct Product {
-    std::string ten;
-    int gia;
-    int soLuong;
+    std::string name;
+    int price;
+    int quantity;
 
-    // Constructor để khởi tạo Product dễ dàng hơn
-    Product(std::string t, int g, int s) : ten(t), gia(g), soLuong(s) {}
+    // Constructor for convenient Product initialization
+    Product(std::string n, int p, int q) : name(n), price(p), quantity(q) {}
 };
 
 #endif

@@ -7,29 +7,32 @@
 using namespace std;
 
 int main() {
-    vector<Product> dsSanPham = {
-        {"coca", 12, 5},
-        {"7-up", 14, 3},
-        {"C2", 87, 2},
-        {"o long", 45, 4}
+    vector<Product> productList = {
+        {"Coca", 10000, 5},
+        {"7-Up", 11000, 3},
+        {"C2", 12000, 2},
+        {"Olong", 15000, 4}
     };
 
     int option;
 
     while (true) {
-        printCurrentMoney();
-        printMenu(dsSanPham);
-        cout << "\nnhap lua chon cua ban: ";
+        // Sửa tên hàm thành printCurrentBalance
+        printCurrentBalance();  // Đảm bảo tên hàm đúng
+
+        printMenu(productList);
+
+        cout << "\nEnter your choice: ";
         cin >> option;
 
         if (cin.fail()) {
             cin.clear();
             cin.ignore(10000, '\n');
-            cout << "lua chon khong hop le, vui long chon lai.\n";
+            cout << "Invalid choice, please select again.\n";
             continue;
         }
 
-        orderItem(option, dsSanPham);
+        orderItem(option, productList);
     }
 
     return 0;

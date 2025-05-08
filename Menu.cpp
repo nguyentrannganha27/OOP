@@ -1,18 +1,35 @@
 #include "Menu.h"
-#include "Product.h"    // cần để biết về Product
+#include "Product.h"
 #include <iostream>
-#include <vector>       // cần để dùng vector
+#include <vector>
+#include <iomanip> // for setw, left
 
 using namespace std;
 
 void printMenu(const vector<Product>& dsSanPham) {
-    cout << "\nMENU:\n";
+    // In ra tiêu đề chỉ một lần
+    cout << "\n========================================\n";
+    cout << "             PRODUCT MENU               \n";
+    cout << "========================================\n";
+    
+    // Cột thông tin sản phẩm
+    cout << left << setw(5) << "No."
+         << setw(15) << "Product"
+         << setw(10) << "Price"
+         << "Stock\n";
+    cout << "----------------------------------------\n";
+
+    // In danh sách sản phẩm
     for (size_t i = 0; i < dsSanPham.size(); ++i) {
-        cout << i + 1 << ". " << dsSanPham[i].ten
-             << " - " << dsSanPham[i].gia << " do"
-             << " (con lai " << dsSanPham[i].soLuong << ")\n";
+        cout << left << setw(5) << i + 1
+             << setw(15) << dsSanPham[i].name
+             << setw(10) << dsSanPham[i].price
+             << dsSanPham[i].quantity << "\n";
     }
-    cout << dsSanPham.size() + 1 << ". Tra tien lai\n";
-    cout << dsSanPham.size() + 2 << ". Nap tien them\n";
-    cout << dsSanPham.size() + 3 << ". Thoat, tu dong tra tien lai\n";
+
+    // Các lựa chọn cuối cùng
+    cout << "----------------------------------------\n";
+    cout << left << setw(5) << dsSanPham.size() + 1 << "Return change\n";
+    cout << left << setw(5) << dsSanPham.size() + 2 << "Insert more money\n";;
+    cout << "========================================\n";
 }

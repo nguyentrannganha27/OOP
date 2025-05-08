@@ -3,36 +3,36 @@
 #include <iostream>
 using namespace std;
 
-int tien = 0;  // Biến toàn cục để lưu trữ số tiền
+int balance = 0;  // Global variable to store current balance
 
-// Hàm nạp tiền
+// Function to insert money
 int getMoney() {
-    int nhaptien;
-    cout << "nhap so tien muon nap: ";
-    cin >> nhaptien;
-    if (cin.fail() || nhaptien <= 0) {
+    int inputAmount;
+    cout << "\nEnter the amount to insert: ";
+    cin >> inputAmount;
+    if (cin.fail() || inputAmount <= 0) {
         cin.clear();
         cin.ignore(10000, '\n');
-        cout << "so tien khong hop le, vui long chon lai.\n";
+        cout << " Invalid amount, please try again.\n";
         return 0;
     }
-    tien += nhaptien;
-    cout << "ban da nap thanh cong " << nhaptien << " do" << endl;
-    return tien;
+    balance += inputAmount;
+    cout << " Successfully inserted " << inputAmount << " VND.\n";
+    return balance;
 }
 
-// Hàm in số dư hiện tại
-void printCurrentMoney() {
-    cout << "\nso du hien tai la:  " << tien << " do\n";
+// Function to print current balance
+void printCurrentBalance() {
+    cout << "\n Current balance: " << balance << " VND\n";
 }
 
-// Hàm trả lại tiền
+// Function to return money
 void returnMoney() {
-    if (tien == 0) {
-        cout << "loi!!! hien tai ban khong con tien de tra lai!!!!";
+    if (balance == 0) {
+        cout << "  Error: No money to return!\n";
     } else {
-        cout << "\nso tien tra lai la:  " << tien << " do\n";
-        cout << "Tra tien lai thanh cong!\n";
-        tien = 0;  // Đặt lại số tiền sau khi trả
+        cout << "\n Returning: " << balance << " VND\n";
+        cout << " Change returned successfully.\n";
+        balance = 0;  // Reset balance after returning
     }
 }
