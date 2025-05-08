@@ -8,9 +8,9 @@ int balance = 0;  // Global variable to store current balance
 // Function to insert money
 int getMoney() {
     int inputAmount;
-    cout << "\nEnter the amount to insert: ";
+    cout << "\nEnter the amount to insert ( >= 10000):  ";
     cin >> inputAmount;
-    if (cin.fail() || inputAmount <= 0) {
+    if (cin.fail() || inputAmount < 10000) {
         cin.clear();
         cin.ignore(10000, '\n');
         cout << " Invalid amount, please try again.\n";
