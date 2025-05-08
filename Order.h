@@ -1,10 +1,14 @@
 #ifndef ORDER_H
 #define ORDER_H
 
-#include <vector>
 #include "Product.h"
+#include "Promotion.h"
+#include <vector>
 
-// Must not use 'const' so the product quantities can be modified
-void orderItem(int option, std::vector<Product>& productList);
+// Khai báo biến toàn cục balance
+extern int balance;
 
-#endif // ORDER_H
+// Hàm xử lý đơn hàng
+void orderItem(int option, std::vector<Product>& productList, std::vector<PromoCode>& promoList);
+
+#endif
