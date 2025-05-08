@@ -3,13 +3,17 @@
 
 #include <string>
 
-struct Product {
+class Product {
+public:
     std::string name;
     int price;
     int quantity;
 
-    // Constructor for convenient Product initialization
-    Product(std::string n, int p, int q) : name(n), price(p), quantity(q) {}
+    // Constructor to initialize a product
+    Product(std::string n, int p, int q);
+
+    // Method to calculate total value of the product in stock
+    int getTotalPrice() const;
 };
 
 #endif
