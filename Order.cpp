@@ -1,5 +1,5 @@
 #include "Order.h"
-#include "Tien.h"
+#include "Money.h"
 #include "Product.h"
 #include "Promotion.h"
 #include "Invoice.h"
@@ -7,7 +7,7 @@
 #include <vector>
 #include <limits>
 #include <ctime>
-
+extern int totalRevenue;
 using namespace std;
 
 void orderItem(int option, std::vector<Product>& productList, std::vector<PromoCode>& promoList) {
@@ -26,6 +26,9 @@ void orderItem(int option, std::vector<Product>& productList, std::vector<PromoC
             cout << "\nSorry, you do not have enough balance to make a purchase.\n";
             return;
         }
+
+        // Hiển thị số dư hiện tại trước khi mua
+        cout << "\nCurrent balance: " << balance << " VND\n";
 
         int qty;
         cout << "Enter quantity to purchase: ";
@@ -77,6 +80,7 @@ void orderItem(int option, std::vector<Product>& productList, std::vector<PromoC
 
         if (balance >= finalCost) {
             balance -= finalCost;  // Cập nhật số dư sau khi thanh toán
+            totalRevenue += finalCost;
             p.quantity -= qty;  // Cập nhật số lượng sản phẩm trong kho
             cout << "\n Purchase successful: " << qty << " x " << p.name << "\n";
             cout << " Discount applied: " << discount << " VND\n";
@@ -97,7 +101,8 @@ void orderItem(int option, std::vector<Product>& productList, std::vector<PromoC
         returnMoney();  // Hoàn tiền nếu chọn mục này
     } else if (option == n + 2) {
         getMoney();  // Thêm tiền vào tài khoản nếu chọn mục này
-    } else {
+    }
+    else {
         cout << "\n Invalid choice. Please try again.\n";
     }
 }
