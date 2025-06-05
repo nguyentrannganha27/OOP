@@ -4,122 +4,135 @@
 #include "Order.h"
 #include "Promotion.h"
 #include "Invoice.h"
-#include "Admin.h"  // Added new header
-#include"Hotwatermachine.h"
+#include "Admin.h"  
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <limits>
 #include <ctime>
+#include <conio.h>    // _kbhit(), _getch()
+#include <windows.h>  // Sleep()
 
 using namespace std;
+
+// Hàm chờ người dùng nhập phím trong khoảng timeoutSeconds giây
+// Trả về true nếu có phím bấm, false nếu timeout
+bool waitForInputWithTimeout(int timeoutSeconds) {
+    time_t start = time(nullptr);
+    while (difftime(time(nullptr), start) < timeoutSeconds) {
+        if (_kbhit()) {   // Nếu có phím bấm
+            _getch();     // Đọc và bỏ qua phím bấm
+            return true;  // Người dùng thao tác, không timeout
+        }
+        Sleep(100); // Nghỉ 100ms tránh chiếm CPU
+    }
+    return false;  // Timeout không thao tác
+}
+
+// Hàm chờ người dùng nhập số nguyên có timeout, trả về true nếu nhập thành công
+bool getIntInputWithTimeout(int &input, int timeoutSeconds) {
+    time_t start = time(nullptr);
+    string buffer;
+
+    cout << "(You have " << timeoutSeconds << " seconds to input): ";
+    while (difftime(time(nullptr), start) < timeoutSeconds) {
+        if (_kbhit()) {
+            char ch = _getch();
+            if (ch == '\r') { // Enter
+                if (!buffer.empty()) {
+                    try {
+                        input = stoi(buffer);
+                        cout << endl;
+                        return true;
+                    } catch (...) {
+                        cout << "\nInvalid number format, try again.\n";
+                        buffer.clear();
+                        cout << "(You have " << timeoutSeconds << " seconds to input): ";
+                    }
+                }
+            }
+            else if (ch == '\b') { // Backspace
+                if (!buffer.empty()) {
+                    buffer.pop_back();
+                    cout << "\b \b";
+                }
+            }
+            else if (isdigit(ch)) {
+                buffer.push_back(ch);
+                cout << ch;
+            }
+        }
+        Sleep(50);
+    }
+
+    cout << "\nTimeout! No input detected.\n";
+    return false;
+}
 
 int main() {
     vector<Product> productList = {
         {"Coca", 10000, 5},
         {"7-Up", 11000, 3},
         {"C2", 12000, 2},
-        {"Olong", 15000, 4},
-        {"Mi ly", 10000, 6},
-        {"Ca phe pha", 15000, 5},
-        {"Tra gung",10000,6},
+        {"Olong", 15000, 4}
     };
-
     vector<PromoCode> promoList = {
         {"JULY01", 15, 1, 1688160000},
         {"DISCOUNT10", 10, 1, time(nullptr) + 7 * 24 * 3600},
     };
- HotWaterMachine waterMachine;
-while (true) {
-    cout << "\n==== VENDING MACHINE ====";
-    cout << "\n1. View menu and purchase";
-    cout << "\n2. Admin mode";
-    cout << "\n3. Use hot water machine";
-    cout << "\nSelect an option: ";
-    
-    int mainChoice;
-    cin >> mainChoice;
 
-    if (cin.fail()) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input! Please enter a number.\n";
-        continue;
-    }
+    while (true) {
+        cout << "\n==== VENDING MACHINE ====";
+        cout << "\n1. View menu and purchase";
+        // cout << "\n113. Admin mode";  // đây là giao diện ẩn, cho admin biết
+        cout << "\nSelect an option (auto exit after 30s inactivity): ";
 
-    switch (mainChoice) {
-        case 1:
-            if (authenticateAdmin()) {
-                showAdminMenu(productList);
+        int mainChoice;
+
+        // Ở menu chính, đợi nhập số với timeout 30s
+        if (!getIntInputWithTimeout(mainChoice, 30)) {
+            cout << "\nNo input for 30 seconds. Machine going offline.\n";
+            cout << "Press any key to turn on again...\n";
+
+            // Đợi phím bất kỳ để bật lại
+            while (!_kbhit()) {
+                Sleep(100);
             }
-            break;
-        case 2: {
-            while (true) {
-                printMenu(productList);
-                cout << "Enter product option (0 to cancel): ";
-                int option;
-                cin >> option;
-                
-                if (cin.fail()) {
-                    cin.clear();
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                    cout << "Invalid input! Please enter a number.\n";
-                    continue;
-                }
-                
-                if (option == 0) break;  // Thoát về menu chính
-                
-                orderItem(option, productList, promoList);
-            }
-            break;
+            _getch(); // Bỏ qua phím bấm
+
+            cout << "Machine is back online.\n";
+            continue;  // Quay lại vòng lặp để in menu tiếp
         }
-        case 3: {
-            if (balance <= 0) {
-                cout << "\n  Ban can nap tien truoc khi su dung may nuoc nong.\n";
-                break; 
-    }
-            int choice;
-            do {
-                cout << "\n== Hot Water Machine ==";
-                cout << "\n1. Set temperature";
-                cout << "\n2. Boil water";
-                cout << "\n3. Check current temperature";
-                cout << "\n0. Return";
-                cout << "\nYour choice: ";
-                cin >> choice;
 
-            if (cin.fail()) {
-                    cin.clear();
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                    cout << "Invalid input!\n";
-                    continue;
+        switch (mainChoice) {
+            case 113:
+                if (authenticateAdmin()) {
+                    showAdminMenu(productList);
                 }
+                break;
 
-            switch (choice) {
-                 case 1: {
-                        int newTemp;
-                        cout << "Enter desired temperature (70-100): ";
-                        cin >> newTemp;
-                        waterMachine.setTemperature(newTemp);
-                        break;
+            case 1: {
+                // Ở menu con: mỗi lần nhập option cũng có timeout 30s
+                while (true) {
+                    printMenu(productList);
+                    cout << "Enter product option (0 to cancel): ";
+
+                    int option;
+                    if (!getIntInputWithTimeout(option, 30)) {
+                        cout << "No input for 30 seconds. Returning to main menu...\n";
+                        break; // Quay lại menu chính
                     }
-                 case 2:
 
-                        waterMachine.boilWater();
-                        break;
-                 case 3:
-                        cout << "Current water temperature: " << waterMachine.getTemperature() << " C\n";
-                        break;
-                 case 0:
-                        break;
-                   default:
-                        cout << "Invalid option.\n";
+                    if (option == 0) break;  // Thoát về menu chính
+
+                    orderItem(option, productList, promoList);
                 }
-            } while (choice != 0);
-            break;
-}
-        
-        default:
-            cout << "Invalid choice. Please try again.\n";
+                break;
+            }
+
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
     }
-}}
+    return 0;
+}
