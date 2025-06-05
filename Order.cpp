@@ -7,7 +7,6 @@
 #include <vector>         // Dùng vector lưu danh sách sản phẩm, mã giảm giá
 #include <limits>         // numeric_limits dùng cho xử lý input lỗi
 #include <ctime>          // (Không dùng trong đoạn này, có thể bỏ)
-
 extern int totalRevenue;  // Biến tổng doanh thu toàn cục khai báo ở file khác
 extern int balance;       // Biến số dư tài khoản (tiền người dùng nạp)
 
