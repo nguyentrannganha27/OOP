@@ -34,7 +34,7 @@ void printCurrentBalance() {
 void returnMoney() {
     if (balance == 0) {
         cout << "  Error: No money to return!\n";   // Không có tiền để trả lại
-    } else if (balance < 1000) {
+    } else if (balance < 10000) {
         cout << "Error: no enough for returning conditon!!" << "\n"; // Tiền quá nhỏ không thể trả
     } else {
         cout << "\n Returning: " << balance << " VND\n";

@@ -3,7 +3,8 @@
 
 #include <string>   // Dùng std::string cho mã khuyến mãi
 #include <ctime>    // Dùng time_t để quản lý thời gian hết hạn
-
+#include <iomanip>  // std::put_time
+#include <sstream>  // std::ostringstream
 class PromoCode {
 public:
     std::string code;          // Mã khuyến mãi (ví dụ: "SALE10")
