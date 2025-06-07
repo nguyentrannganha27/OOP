@@ -1,10 +1,11 @@
 #include "Product.h"
 #include "Menu.h"
-#include "Money.h"
+#include "Moneymanager.h"
 #include "Order.h"
 #include "Promotion.h"
 #include "Invoice.h"
 #include "Admin.h"
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -15,6 +16,7 @@
 
 using namespace std;
 
+// ===== Hàm chờ nhập phím trong một khoảng thời gian =====
 bool waitForInputWithTimeout(int timeoutSeconds) {
     time_t start = time(nullptr);
     while (difftime(time(nullptr), start) < timeoutSeconds) {
@@ -22,12 +24,13 @@ bool waitForInputWithTimeout(int timeoutSeconds) {
             _getch();
             return true;
         }
-        Sleep(100);
+        Sleep(100);  // Giảm tải CPU
     }
     return false;
 }
 
-bool getIntInputWithTimeout(int &input, int timeoutSeconds) {
+// ===== Hàm nhập số nguyên có giới hạn thời gian =====
+bool getIntInputWithTimeout(int& input, int timeoutSeconds) {
     time_t start = time(nullptr);
     string buffer;
 
@@ -65,7 +68,9 @@ bool getIntInputWithTimeout(int &input, int timeoutSeconds) {
     return false;
 }
 
+// ===== Hàm chính =====
 int main() {
+    // Danh sách sản phẩm mặc định
     vector<Product> productList = {
         {"Coca", 10000, 5},
         {"7-Up", 11000, 3},
@@ -73,39 +78,42 @@ int main() {
         {"Olong", 15000, 4}
     };
 
+    // Danh sách mã khuyến mãi mặc định
     vector<PromoCode> promoList = {
         {"DISCOUNT10", 10, 1, time(nullptr) + 7 * 24 * 3600}
     };
 
+    // Vòng lặp chính của máy bán hàng
     while (true) {
-        cout << "\n==== VENDING MACHINE ====";
-        cout << "\n1. View menu and purchase";
-        // cout << "\n113. Admin mode";
-        cout << "\nSelect an option (auto exit after 30s inactivity): ";
+        cout << "\n==== VENDING MACHINE ====\n";
+        cout << "1. View menu and purchase\n";
+        // cout << "113. Admin mode\n";  // Có thể bật nếu cần
+        cout << "Select an option (auto exit after 30s inactivity): ";
 
         int mainChoice;
 
+        // Nếu không nhập trong 30s thì tự tắt
         if (!getIntInputWithTimeout(mainChoice, 30)) {
             cout << "\nNo input for 30 seconds. Machine going offline.\n";
             cout << "Press any key to turn on again...\n";
-            while (!_kbhit()) {
-                Sleep(100);
-            }
+            while (!_kbhit()) Sleep(100);
             _getch();
             cout << "Machine is back online.\n";
             continue;
         }
 
         switch (mainChoice) {
-            case 113:
-                if (authenticateAdmin()) {
-                    showAdminMenu(productList, promoList);
+            case 113: {  // Chế độ quản trị viên
+                Admin admin;
+                if (admin.authenticate()) {
+                    admin.showMenu(productList, promoList);
                 }
                 break;
+            }
 
-            case 1: {
+            case 1: {  // Người dùng mua hàng
                 while (true) {
-                    printMenu(productList);
+                    Menu::printMenu(productList);
                     cout << "Enter product option (0 to cancel): ";
 
                     int option;
@@ -116,7 +124,7 @@ int main() {
 
                     if (option == 0) {
                         if (balance >= 10000) {
-                            returnMoney();
+                            MoneyManager::returnMoney();
                             cout << "Refunded to the user.\n";
                         } else {
                             totalRevenue += balance;
@@ -135,6 +143,4 @@ int main() {
                 cout << "Invalid choice. Please try again.\n";
         }
     }
-
-    return 0;
 }

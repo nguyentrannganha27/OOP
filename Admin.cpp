@@ -1,470 +1,308 @@
-#include "Admin.h"       // Thư viện chứa các hàm, biến liên quan đến quản trị viên
-#include "Product.h"     // Thư viện định nghĩa lớp Product và các thao tác liên quan sản phẩm
-#include "Money.h"       // Thư viện quản lý tiền, doanh thu, và các hàm liên quan
-#include <iostream>      // Thư viện chuẩn để nhập/xuất dữ liệu
-#include <limits>        // Thư viện dùng để lấy giới hạn của kiểu dữ liệu, hỗ trợ xóa bộ đệm nhập
-#include <iomanip>       // Thư viện định dạng đầu ra
-#include <algorithm>     // Thư viện chứa hàm transform (dùng để xử lý chuỗi, chuyển đổi)
-#include <cctype>        // Thư viện xử lý ký tự, dùng hàm tolower chuyển chữ hoa thành chữ thường
-#include "Promotion.h"
-#include <ctime>
-#include <conio.h>       // Cho _getch
-#include <sstream>       // Cho std::ostringstream
+// ===== Các thư viện và file header cần thiết =====
+#include "Admin.h"           // Khai báo class Admin và các hàm liên quan
+#include "Product.h"         // Khai báo struct Product
+#include "Moneymanager.h"    // Khai báo biến totalRevenue và các hàm tiền tệ
+#include "Promotion.h"       // Khai báo struct PromoCode
+
+#include <iostream>          // Nhập xuất dữ liệu
+#include <limits>            // Giới hạn giá trị nhập vào
+#include <iomanip>           // Định dạng xuất
+#include <algorithm>         // Các hàm thuật toán (transform)
+#include <cctype>            // Hàm xử lý ký tự
+#include <ctime>             // Thời gian hệ thống
+#include <conio.h>           // Đọc phím không cần Enter
+#include <sstream>           // Dùng ostringstream để định dạng chuỗi
+
 using namespace std;
 
-// Hàm ẩn mật khẩu khi nhập
-string getHiddenPassword() {
+// ===== Định nghĩa hằng số mật khẩu admin =====
+const string Admin::ADMIN_PASSWORD = "admin123";
+
+// ====== Các hàm tiện ích nội bộ ======
+
+// Hàm nhập mật khẩu không hiển thị ký tự, thay bằng dấu *
+string Admin::getHiddenPassword() {
     string password;
     char ch;
-    while ((ch = _getch()) != '\r') { // Enter
-        if (ch == '\b') {
+    while ((ch = _getch()) != '\r') {  // Lặp đến khi người dùng nhấn Enter
+        if (ch == '\b') {  // Xử lý phím Backspace
             if (!password.empty()) {
                 password.pop_back();
-                cout << "\b \b";
+                cout << "\b \b";  // Xóa ký tự khỏi màn hình
             }
         } else {
             password += ch;
-            cout << '*';
+            cout << '*';  // In dấu * thay vì ký tự
         }
     }
     cout << '\n';
     return password;
 }
 
-// Hàm chuyển time_t thành chuỗi ngày giờ dễ đọc
-std::string formatTime(time_t rawTime) {
-    std::tm* timeinfo = std::localtime(&rawTime);
-    std::ostringstream oss;
-    oss << std::put_time(timeinfo, "%d/%m/%Y %H:%M");
+// Hàm định dạng thời gian thành chuỗi dd/mm/yyyy hh:mm
+string Admin::formatTime(time_t rawTime) {
+    tm* timeinfo = localtime(&rawTime);
+    ostringstream oss;
+    oss << put_time(timeinfo, "%d/%m/%Y %H:%M");
     return oss.str();
 }
 
-// Hàm trợ giúp chuyển chuỗi sang chữ thường
-string toLowerCase(const string& str) {
+// Hàm chuyển chuỗi thành chữ thường để so sánh không phân biệt hoa/thường
+string Admin::toLowerCase(const string& str) {
     string result = str;
     transform(result.begin(), result.end(), result.begin(), ::tolower);
     return result;
 }
 
-// Hàm nhập số nguyên hợp lệ với điều kiện giá trị nhập >= minValue
-int getValidInput(int minValue, const string& prompt) {
+// Hàm nhập số nguyên hợp lệ ≥ minValue
+int Admin::getValidInput(int minValue, const string& prompt) {
     int value;
     while (true) {
         cout << prompt;
-        if (cin >> value) {
-            if (value >= minValue) {
-                return value;
-            } else {
-                cout << "Error: Input must be at least " << minValue << ".\n";
-            }
-        } else {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input! Please enter a valid number.\n";
-        }
+        if (cin >> value && value >= minValue) return value;
+        cin.clear();  // Xóa lỗi
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Bỏ qua dòng sai
+        cout << "Invalid input! Try again.\n";
     }
 }
 
-// Hàm xác thực mật khẩu quản trị viên
-bool authenticateAdmin() {
+// ====== Các hàm thuộc lớp Admin ======
+
+// Hàm xác thực mật khẩu admin, cho 3 lần thử
+bool Admin::authenticate() {
     int attempts = 3;
     while (attempts--) {
-        string input;
         cout << "\nEnter admin password: ";
-        input = getHiddenPassword();
-
+        string input = getHiddenPassword();
         if (input == ADMIN_PASSWORD) {
             time_t now = time(nullptr);
             cout << "Admin access granted at: " << formatTime(now) << "\n";
             return true;
         }
-
         cout << "Incorrect password! Attempts left: " << attempts << "\n";
     }
     cout << "Too many failed attempts. Access denied.\n";
     return false;
 }
-// Hiển thị menu quản trị viên và xử lý lựa chọn
-void showAdminMenu(vector<Product>& products, vector<PromoCode>& promoList) {
-    while (true) {
-        cout << "\n===== ADMIN MENU =====";
-        cout << "\n1. Add product";               // Thêm sản phẩm
-        cout << "\n2. Remove product";            // Xóa sản phẩm
-        cout << "\n3. Edit product information";  // Chỉnh sửa thông tin sản phẩm
-        cout << "\n4. View total revenue";        // Xem tổng doanh thu
-        cout << "\n5. Add promo code";
-        cout << "\n6. Remove promo code";
-        cout << "\n7. Edit promo code";
-        cout << "\n0. Exit";                       // Thoát menu admin
-        cout << "\nChoose an option: ";
 
+// Hiển thị menu quản trị viên và xử lý lựa chọn
+void Admin::showMenu(vector<Product>& products, vector<PromoCode>& promoList) {
+    while (true) {
+        cout << "\n===== ADMIN MENU =====\n"
+             << "1. Add product\n"
+             << "2. Remove product\n"
+             << "3. Edit product information\n"
+             << "4. View total revenue\n"
+             << "5. Add promo code\n"
+             << "6. Remove promo code\n"
+             << "7. Edit promo code\n"
+             << "0. Exit\n"
+             << "Choose an option: ";
         int choice;
         cin >> choice;
-
-        if (cin.fail()) {  // Kiểm tra nhập lựa chọn hợp lệ
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid choice!\n";   // Thông báo lỗi
-            continue;                      // Yêu cầu nhập lại
+        if (cin.fail()) {
+            cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid choice!\n";
+            continue;
         }
 
-        // Xử lý lựa chọn menu
+        // Gọi hàm tương ứng theo lựa chọn
         switch (choice) {
-            case 1:
-                addProduct(products);  // Thêm sản phẩm mới
-                break;
-            case 2:
-                removeProduct(products);  // Xóa sản phẩm
-                break;
-            case 3:
-                modifyProduct(products);  // Sửa thông tin sản phẩm
-                break;
-            case 4:
-                viewCurrentBalance();     // Xem doanh thu hiện tại
-                break;
-            case 5:
-                addPromoCode(promoList);
-            break;
-            case 6:
-                removePromoCode(promoList);
-            break;
-            case 7:
-                editPromoCode(promoList);
-            break;
-            case 0:
-                return;
-            default:
-                cout << "Invalid choice!\n";  // Lựa chọn không hợp lệ
+            case 1: addProduct(products); break;
+            case 2: removeProduct(products); break;
+            case 3: modifyProduct(products); break;
+            case 4: viewCurrentBalance(); break;
+            case 5: addPromoCode(promoList); break;
+            case 6: removePromoCode(promoList); break;
+            case 7: editPromoCode(promoList); break;
+            case 0: return;
+            default: cout << "Invalid choice!\n";
         }
     }
 }
 
-// Hàm thêm sản phẩm mới hoặc cập nhật sản phẩm đã tồn tại
-void addProduct(vector<Product>& products) {
+// Thêm sản phẩm mới, hoặc cập nhật nếu đã tồn tại
+void Admin::addProduct(vector<Product>& products) {
     string name;
     cout << "\nEnter new product name: ";
-    cin.ignore();  // Xóa ký tự newline còn tồn đọng trong bộ đệm trước khi getline
-    getline(cin, name);  // Nhập tên sản phẩm có thể chứa dấu cách
-    string lowerName = toLowerCase(name);  // Chuyển tên nhập thành chữ thường để so sánh không phân biệt hoa thường
+    cin.ignore();
+    getline(cin, name);
+    string lowerName = toLowerCase(name);
 
-    // Kiểm tra sản phẩm trùng tên (không phân biệt hoa thường)
+    // Tìm sản phẩm trùng tên
     for (Product& p : products) {
         if (toLowerCase(p.name) == lowerName) {
-            cout << "A product with the same name (case-insensitive) already exists.\n";
-            cout << "Current: " << p.name << " - Price: " << p.price << " - Quantity: " << p.quantity << "\n";
-            char choice;
-            int time = 3;  // Giới hạn số lần nhập sai
-
-            while (true)
-            {
-                cout << "Do you want to update its information? (1 for yes/2 for no): ";
+            cout << "Product exists: " << p.name << " - Price: " << p.price << " - Quantity: " << p.quantity << "\n";
+            int time = 3;
+            while (time--) {
+                char choice;
+                cout << "Update info? (1 for yes / 2 for no): ";
                 cin >> choice;
-                time -=1;
-
                 if (choice == '1') {
-                    cin.ignore();  // Xóa newline sau khi nhập lựa chọn
-
-                    p.name = name;  // Cập nhật tên sản phẩm
-
-                    // Nhập giá mới, giá phải lớn hơn 10,000
-                    int price = getValidInput(10000, "Enter new price (greater than 10000 to update): ");
-                    p.price = price;
-
-                    // Nhập số lượng mới, số lượng >= 1
-                    int quantity = getValidInput(1, "Enter new quantity (greater than 1 to update): ");
-                    p.quantity = quantity;
-
+                    cin.ignore();
+                    p.name = name;
+                    p.price = getValidInput(10000, "Enter new price: ");
+                    p.quantity = getValidInput(1, "Enter new quantity: ");
                     cout << "Product updated successfully!\n";
                     return;
-                }
-                else if(choice == '2') {
-                    return;  // Không cập nhật, thoát hàm
-                }
-                else {
-                    if (time == 0 ) {
-                        cout << "Selected wrong 3 times, please select action again" << endl;
-                        return;
-                    }
-                    cout << "Try again!!" << endl;
+                } else if (choice == '2') {
+                    return;
+                } else {
+                    cout << "Try again!\n";
                 }
             }
+            cout << "Too many failed attempts.\n";
+            return;
         }
     }
 
-    // Nếu sản phẩm chưa tồn tại, nhập giá và số lượng mới
-    int price = getValidInput(10000, "Enter product price (greater than 10000): ");
-    int quantity = getValidInput(1, "Enter quantity (greater than 1): ");
-
-    products.push_back(Product(name, price, quantity));  // Thêm sản phẩm mới vào danh sách
+    // Nếu chưa tồn tại, thêm mới
+    int price = getValidInput(10000, "Enter price: ");
+    int qty = getValidInput(1, "Enter quantity: ");
+    products.emplace_back(name, price, qty);
     cout << "Product added successfully!\n";
 }
 
-// Hàm xóa sản phẩm theo số thứ tự
-void removeProduct(vector<Product>& products) {
-    cout << "\nCurrent product list:\n";
-    for (size_t i = 0; i < products.size(); ++i) {
-        cout << i + 1 << ". " << products[i].name << "\n";  // Hiển thị danh sách sản phẩm hiện có
-    }
-
-    cout << "Select the product number to delete (0 to cancel): ";
-    int choice;
-    cin >> choice;
-
-    if (cin.fail()) {  // Kiểm tra nhập hợp lệ
-        cin.clear(); // reset trạng thái lỗi của cin
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // xóa bộ đệm nhập
-        cout << "Invalid input. Please enter a valid number.\n";
-        return;  // hoặc bạn có thể yêu cầu nhập lại
-    }
-
-    if (choice == 0) {  // Hủy xóa
-        cout << "Delete canceled.\n";
+// Xóa sản phẩm theo số thứ tự
+void Admin::removeProduct(vector<Product>& products) {
+    if (products.empty()) {
+        cout << "No products available.\n";
         return;
     }
+    for (size_t i = 0; i < products.size(); ++i)
+        cout << i + 1 << ". " << products[i].name << "\n";
 
-    // Nếu số chọn hợp lệ, xóa sản phẩm
-    if (choice > 0 && choice <= static_cast<int>(products.size())) {
-        products.erase(products.begin() + choice - 1);
-        cout << "Product removed successfully!\n";
-    } else {
-        cout << "Invalid choice, please try again.\n";  // Lựa chọn không hợp lệ
+    cout << "Select product number to remove (0 to cancel): ";
+    int choice;
+    cin >> choice;
+    if (cin.fail() || choice < 0 || choice > static_cast<int>(products.size())) {
+        cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid choice.\n";
+        return;
     }
+    if (choice == 0) return;
+
+    products.erase(products.begin() + (choice - 1));
+    cout << "Product removed.\n";
 }
 
-// Hàm sửa thông tin sản phẩm theo số thứ tự
-void modifyProduct(vector<Product>& products) {
-    cout << "\nCurrent product list:\n";
-    for (size_t i = 0; i < products.size(); ++i) {
-        cout << i + 1 << ". " << products[i].name
-             << " - Price: " << products[i].price
-             << " - Quantity: " << products[i].quantity << "\n";  // Hiển thị danh sách sản phẩm
-    }
+// Chỉnh sửa thông tin sản phẩm
+void Admin::modifyProduct(vector<Product>& products) {
+    for (size_t i = 0; i < products.size(); ++i)
+        cout << i + 1 << ". " << products[i].name << " - Price: " << products[i].price << " - Quantity: " << products[i].quantity << "\n";
 
-    cout << "Select the product number to edit (0 to cancel): ";
+    cout << "Select product to edit (0 to cancel): ";
     int choice;
     cin >> choice;
-
-    if (cin.fail()) {  // Kiểm tra nhập hợp lệ
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid choice, please try again.\n";
+    if (cin.fail() || choice < 0 || choice > static_cast<int>(products.size())) {
+        cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid choice.\n";
         return;
     }
+    if (choice == 0) return;
 
-    if (choice == 0) {  // Hủy sửa
-        cout << "Edit canceled.\n";
-        return;
-    }
+    Product& p = products[choice - 1];
+    cin.ignore();
+    cout << "Enter new name (Enter to keep): ";
+    string name;
+    getline(cin, name);
+    if (!name.empty()) p.name = name;
 
-    // Nếu lựa chọn hợp lệ thì cho phép sửa
-    if (choice > 0 && choice <= static_cast<int>(products.size())) {
-        Product& p = products[choice - 1];  // Tham chiếu tới sản phẩm được chọn
-
-        cout << "Enter new name (Enter to keep current): ";
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Xóa bộ đệm trước khi getline
-        string newName;
-        getline(cin, newName);  // Nhập tên mới, nếu để trống thì giữ nguyên
-        if (!newName.empty()) p.name = newName;
-
-        // Sửa giá, nhập 0 để giữ nguyên giá cũ
-        int time_2 = 3;
-while (true)
-{
-    time_2 -= 1;
-
-    int newPrice = getValidInput(0, "Enter new price (0 to keep current): ");
-    
-    if (newPrice == 0) {
-        // Keep current price and exit loop
-        break;
-    }
-
-    if (newPrice >= 10000) {
-        p.price = newPrice;
-        break;
-    } else {
-        if (time_2 == 0) {
-            cout << "Maximum attempts reached. Keeping current price." <<endl;
+    int newPrice, attempts = 3;
+    while (attempts--) {
+        newPrice = getValidInput(0, "Enter new price (0 to keep): ");
+        if (newPrice == 0) break;
+        if (newPrice >= 10000) {
+            p.price = newPrice;
             break;
         }
-        cout << "Try again!!" << endl;
+        cout << "Try again!\n";
     }
-}
-        // Sửa số lượng, nhập -1 để giữ nguyên
-        int time_3 = 3;
-        while (true)
-        {
-        time_3 -=1;
-        int newQty = getValidInput(-1, "Enter new quantity (-1 to keep current): ");
+
+    int newQty;
+    attempts = 3;
+    while (attempts--) {
+        newQty = getValidInput(-1, "Enter new quantity (-1 to keep): ");
+        if (newQty == -1) break;
         if (newQty >= 1) {
             p.quantity = newQty;
             break;
         }
-        else if (newQty == -1)
-        {
-            break;
-        }
-        else {
-        if (time_3 == 0) {
-            cout << "Maximum attempts reached. Keeping current quantity." <<endl;
-            break;
-        }
-        cout << "Try again!!" << endl;
+        cout << "Try again!\n";
     }
-}
-        
-
-
-        cout << "Product updated successfully!\n";
-    } else {
-        cout << "Invalid choice, please try again.\n";  // Lựa chọn không hợp lệ
-    }
+    cout << "Product updated.\n";
 }
 
-// Hàm hiển thị tổng doanh thu hiện tại
-void viewCurrentBalance() {
-    extern int totalRevenue;  // Sử dụng biến tổng doanh thu khai báo ở file khác
+// Hiển thị tổng doanh thu hiện tại
+void Admin::viewCurrentBalance() {
     cout << "\nTotal revenue: " << totalRevenue << " VND\n";
 }
-void addPromoCode(std::vector<PromoCode>& promoList) {
-    std::string code;
-    int discount, uses, daysValid;
 
-    std::cout << "Enter promo code: ";
-    std::cin >> code;
+// Thêm mã khuyến mãi mới
+void Admin::addPromoCode(vector<PromoCode>& promoList) {
+    string code;
+    int discount, uses, days;
+    cout << "Enter promo code: ";
+    cin >> code;
 
-    // Nhập phần trăm giảm hợp lệ (1–100)
-    while (true) {
-        std::cout << "Discount percent (1-100): ";
-        if (std::cin >> discount && discount >= 1 && discount <= 100) break;
+    discount = getValidInput(1, "Discount percent (1-100): ");
+    while (discount > 100) discount = getValidInput(1, "Discount percent (1-100): ");
 
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
+    uses = getValidInput(1, "Number of uses: ");
+    days = getValidInput(1, "Valid for how many days from now? ");
+    time_t expiry = time(nullptr) + days * 86400;  // Tính thời gian hết hạn (đơn vị: giây)
 
-    // Nhập số lần sử dụng (>=1)
-    while (true) {
-        std::cout << "Number of uses: ";
-        if (std::cin >> uses && uses > 0) break;
-
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
-
-    // Nhập số ngày hiệu lực (>=1)
-    while (true) {
-        std::cout << "Valid for how many days from now? ";
-        if (std::cin >> daysValid && daysValid > 0) break;
-
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
-
-    time_t expiry = time(nullptr) + daysValid * 86400;
-    promoList.push_back(PromoCode(code, discount, uses, expiry));
-    std::cout << "Promo code added.\n";
+    promoList.emplace_back(code, discount, uses, expiry);
+    cout << "Promo code added.\n";
 }
 
-
-void removePromoCode(std::vector<PromoCode>& promoList) {
+// Xóa mã khuyến mãi
+void Admin::removePromoCode(vector<PromoCode>& promoList) {
     if (promoList.empty()) {
-        std::cout << "No promo codes available.\n";
+        cout << "No promo codes.\n";
         return;
     }
-
-    std::cout << "\n=== List of Promo Codes ===\n";
-    for (size_t i = 0; i < promoList.size(); ++i) {
-        const auto& p = promoList[i];
-        std::cout << i + 1 << ". Code: " << p.code
-          << " | Discount: " << p.discountPercent << "%"
-          << " | Uses left: " << p.remainingUses
-          << " | Expires: " << formatTime(p.expirationTime) << "\n";
-
-    }
+    for (size_t i = 0; i < promoList.size(); ++i)
+        cout << i + 1 << ". Code: " << promoList[i].code
+             << " | Discount: " << promoList[i].discountPercent
+             << "% | Uses left: " << promoList[i].remainingUses
+             << " | Expires: " << formatTime(promoList[i].expirationTime) << "\n";
 
     int choice;
-    while (true) {
-        std::cout << "Enter the number of the promo code to remove (0 to cancel): ";
-        if (std::cin >> choice) {
-            if (choice == 0) {
-                std::cout << "Cancelled.\n";
-                return;
-            }
-            if (choice > 0 && choice <= static_cast<int>(promoList.size())) {
-                promoList.erase(promoList.begin() + (choice - 1));
-                std::cout << "Promo code removed.\n";
-                return;
-            } else {
-                std::cout << "Invalid choice. Try again.\n";
-            }
-        } else {
-            std::cin.clear();  // Xóa trạng thái lỗi
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // Bỏ qua dữ liệu lỗi
-        }
+    cout << "Enter number to remove (0 to cancel): ";
+    cin >> choice;
+    if (choice == 0) return;
+    if (choice > 0 && choice <= static_cast<int>(promoList.size())) {
+        promoList.erase(promoList.begin() + (choice - 1));
+        cout << "Promo code removed.\n";
+    } else {
+        cout << "Invalid choice.\n";
     }
 }
 
-
-void editPromoCode(std::vector<PromoCode>& promoList) {
+// Chỉnh sửa thông tin mã khuyến mãi
+void Admin::editPromoCode(vector<PromoCode>& promoList) {
     if (promoList.empty()) {
-        std::cout << "No promo codes available.\n";
+        cout << "No promo codes.\n";
         return;
     }
-
-    std::cout << "\n=== Promo Codes List ===\n";
-    for (size_t i = 0; i < promoList.size(); ++i) {
-        const auto& p = promoList[i];
-        std::cout << i + 1 << ". Code: " << p.code
-          << " | Discount: " << p.discountPercent << "%"
-          << " | Uses left: " << p.remainingUses
-          << " | Expires: " << formatTime(p.expirationTime) << "\n";
-
-    }
+    for (size_t i = 0; i < promoList.size(); ++i)
+        cout << i + 1 << ". Code: " << promoList[i].code
+             << " | Discount: " << promoList[i].discountPercent
+             << "% | Uses left: " << promoList[i].remainingUses
+             << " | Expires: " << formatTime(promoList[i].expirationTime) << "\n";
 
     int choice;
-    while (true) {
-        std::cout << "Enter the number of the promo code to edit (0 to cancel): ";
-        if (std::cin >> choice) {
-            if (choice == 0) {
-                std::cout << "Cancelled.\n";
-                return;
-            }
-            if (choice > 0 && choice <= static_cast<int>(promoList.size())) {
-                PromoCode& p = promoList[choice - 1];
-
-                int discount;
-                while (true) {
-                    std::cout << "New discount percent (1-100): ";
-                    if (std::cin >> discount && discount >= 1 && discount <= 100) {
-                        break;
-                    }
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    std::cout << "Invalid discount percent. Try again.\n";
-                }
-
-                int uses;
-                while (true) {
-                    std::cout << "New remaining uses (>= 0): ";
-                    if (std::cin >> uses && uses >= 0) {
-                        break;
-                    }
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    std::cout << "Invalid number of uses. Try again.\n";
-                }
-
-                p.discountPercent = discount;
-                p.remainingUses = uses;
-
-                std::cout << "Promo code updated.\n";
-                return;
-            } else {
-                std::cout << "Invalid choice. Try again.\n";
-            }
-        } else {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        }
+    cout << "Enter number to edit (0 to cancel): ";
+    cin >> choice;
+    if (choice == 0) return;
+    if (choice > 0 && choice <= static_cast<int>(promoList.size())) {
+        PromoCode& p = promoList[choice - 1];
+        p.discountPercent = getValidInput(1, "New discount (1_100): ");
+        while (p.discountPercent > 100) p.discountPercent = getValidInput(1, "New discount (1_100): ");
+        p.remainingUses = getValidInput(0, "New number of uses: ");
+        cout << "Promo code updated.\n";
+    } else {
+        cout << "Invalid choice.\n";
     }
 }

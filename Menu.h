@@ -1,11 +1,13 @@
-#ifndef MENU_H  // Nếu chưa định nghĩa MENU_H thì tiếp tục
-#define MENU_H  // Định nghĩa MENU_H để tránh include nhiều lần
+#ifndef MENU_H        // Tránh đính kèm file này nhiều lần trong quá trình biên dịch
+#define MENU_H
 
-#include "Product.h"       // Bao gồm định nghĩa lớp Product
-#include <vector>          // Sử dụng vector để quản lý danh sách sản phẩm
+#include "Product.h"  // Bao gồm định nghĩa lớp Product để sử dụng trong menu
+#include <vector>     // Sử dụng vector để chứa danh sách sản phẩm
 
-// Hàm in ra danh sách menu sản phẩm
-// Tham số truyền vào là vector các sản phẩm, không thay đổi dữ liệu (const)
-void printMenu(const std::vector<Product>& productList);
+class Menu {
+public:
+    // Hàm static để in ra menu sản phẩm hiện có
+    static void printMenu(const std::vector<Product>& productList);
+};
 
-#endif  // Kết thúc phần định nghĩa MENU_H
+#endif                // Kết thúc chỉ thị tiền xử lý cho MENU_H
