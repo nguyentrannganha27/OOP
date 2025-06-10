@@ -15,13 +15,14 @@
 ---
 
 ## 🔧 Tính năng nổi bật
-- Đăng nhập bằng tài khoản quản trị.
+- Đăng nhập bằng tài khoản quản trị, quản lí bằng giao diện ẩn và khi nhập mật khẩu chỉ hiện dấu * để đảm bảo bảo mật.
 - Quản lý sản phẩm: thêm, sửa, xóa.
 - Quản lý mã khuyến mãi linh hoạt.
 - Tạo đơn hàng, tính tổng tiền có áp dụng giảm giá.
 - In hóa đơn chi tiết cho khách hàng.
 - Theo dõi và thống kê doanh thu, số dư hiện tại của máy bán hàng.
-
+- Tính năng tắt sau 30s máy không hoạt động, và máy sẽ hoạt động trở lại khi ấn vào nút bất kì.
+  
 ---
 
 ## 📂 Cấu trúc thư mục
