@@ -188,6 +188,10 @@ void Admin::removeProduct(vector<Product>& products) {
 
 // Chỉnh sửa thông tin sản phẩm
 void Admin::modifyProduct(vector<Product>& products) {
+    if (products.empty()) {
+        cout << "No products available.\n";
+        return;
+    }
     for (size_t i = 0; i < products.size(); ++i)
         cout << i + 1 << ". " << products[i].name << " - Price: " << products[i].price << " - Quantity: " << products[i].quantity << "\n";
 
