@@ -1,4 +1,4 @@
-
+0
 # 💻 Hệ Thống Quản Lý Máy Bán Hàng – Đồ Án Lập Trình Hướng Đối Tượng (C++)
 
 ## 📝 Giới thiệu
@@ -30,7 +30,7 @@
 ```
 OOP-main/
 │
-├── main.cpp                # Hàm main, khởi động chương trình
+├── main.cpp               # Hàm main, khởi động chương trình
 ├── Admin.{cpp,h}          # Chức năng quản trị hệ thống
 ├── Product.{cpp,h}        # Quản lý thông tin sản phẩm
 ├── Order.{cpp,h}          # Xử lý đơn hàng và giỏ hàng
@@ -66,5 +66,7 @@ g++ main.cpp Admin.cpp Product.cpp Order.cpp Invoice.cpp Promotion.cpp Moneymana
 - Giao diện người dùng bằng thư viện đồ họa như SFML hoặc Qt.
 - Thêm chức năng thống kê theo ngày/tháng/năm.
 - Phân quyền nâng cao cho nhiều loại tài khoản người dùng.
+- Phát triển theo hướng mở rộng về hình thức thanh toán.
+- Nâng cao bảo mật.
 
 ---
