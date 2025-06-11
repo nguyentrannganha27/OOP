@@ -11,21 +11,23 @@ int totalRevenue = 0;         // Biến toàn cục lưu trữ tổng doanh thu
 // Hàm nhận tiền từ người dùng và cập nhật số dư
 int MoneyManager::getMoney() {
     int inputAmount;
-    cout << "\nEnter the amount to insert ( >= 10000):  "; // Yêu cầu nhập số tiền
+    cout << "\nEnter the amount to insert (>= 10000 and divisible by 1000): ";
     cin >> inputAmount;
 
-    // Kiểm tra nhập sai hoặc số tiền nhỏ hơn 10000
-    if (cin.fail() || inputAmount < 10000) {
-        cin.clear();                                // Xóa cờ lỗi
-        cin.ignore(10000, '\n');                    // Bỏ qua dữ liệu lỗi trong buffer
-        cout << " Invalid amount, please try again.\n"; // Thông báo lỗi
-        return 0;                                   // Không cập nhật số dư
+    // Kiểm tra lỗi nhập, số tiền < 10000 hoặc không chia hết cho 1000
+    if (cin.fail() || inputAmount < 10000 || inputAmount % 1000 != 0) {
+        cin.clear();                               // Xóa cờ lỗi nhập
+        cin.ignore(10000, '\n');                   // Bỏ qua dữ liệu lỗi
+        cout << " Invalid amount, must be >= 10000 and divisible by 1000. Please try again.\n";
+        return 0;
     }
 
-    balance += inputAmount; //  Cộng tiền vào biến toàn cục balance
-    cout << " Successfully inserted " << inputAmount << " VND.\n"; // Thông báo thành công
-    return balance;         // Trả về số dư mới
+    balance += inputAmount; // Cộng tiền vào biến toàn cục balance
+    cout << " Successfully inserted " << inputAmount << " VND.\n";
+    return balance;
 }
+
+
 
 // Hàm hiển thị số dư hiện tại
 void MoneyManager::printCurrentBalance() {
@@ -35,12 +37,19 @@ void MoneyManager::printCurrentBalance() {
 // Hàm trả lại tiền dư cho người dùng
 void MoneyManager::returnMoney() {
     if (balance == 0) {
-        cout << "  Error: No money to return!\n";       // Không có tiền để trả lại
-    } else if (balance < 10000) {
-        cout << "Error: no enough for returning condition!!\n"; // Số dư không đủ điều kiện trả lại
+        cout << "  Error: No money to return!\n"; // Không có tiền để trả lại
     } else {
-        cout << "\n Returning: " << balance << " VND\n";        // In số tiền trả lại
-        cout << " Change returned successfully.\n";             // Thông báo trả lại thành công
-        balance = 0;                                            // Đặt lại số dư về 0
+        int returned = (balance / 1000) * 1000; // Phần tiền chẵn được trả lại
+        int lost = balance % 1000;             // Phần tiền lẻ bị nuốt
+
+        cout << "\n Returning: " << returned << " VND\n";
+        if (lost > 0) {
+            cout << " Note: " << lost << " VND was not returned and has been kept by the machine.\n";
+            totalRevenue += lost; //  Cộng phần tiền lẻ vào doanh thu
+        }
+        cout << " Change returned successfully.\n";
+        balance = 0;
     }
 }
+
+

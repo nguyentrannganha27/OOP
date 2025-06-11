@@ -123,17 +123,13 @@ int main() {
                     }
 
                     if (option == 0) {
-                        if (balance >= 10000) {
+                        if (balance > 0) {
                             MoneyManager::returnMoney();
-                            cout << "Refunded to the user.\n";
                         } else {
-                            totalRevenue += balance;
-                            cout << "Balance is considered as revenue: " << balance << " VND\n";
-                            balance = 0;
+                            cout << "No balance to return.\n";
                         }
                         break;
                     }
-
                     orderItem(option, productList, promoList);
                 }
                 break;
